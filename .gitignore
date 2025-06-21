@@ -37,3 +37,19 @@ venv/
 # Логи и временные файлы
 *.log
 tmp/
+
+# Node
+node_modules/
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+backend/.env
+
+# System
+.DS_Store
+.env
+.env.*
+*.sqlite3
