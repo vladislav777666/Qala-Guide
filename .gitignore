@@ -1,0 +1,39 @@
+# React Native / Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/android/
+/ios/Pods/
+/ios/build/
+/android/.gradle/
+/*.iml
+.expo/
+/.vscode/
+/.env
+
+# Flutter
+.build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.flutter-*
+pubspec.lock
+
+# Python (FastAPI + ML)
+__pycache__/
+*.py[cod]
+*.sqlite3
+venv/
+.env/
+*.egg-info/
+
+# Общие IDE файлы
+.DS_Store
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Логи и временные файлы
+*.log
+tmp/
