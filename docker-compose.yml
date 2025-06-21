@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgis/postgis
+    container_name: qalaguide-db
+    restart: always
+    environment:
+      POSTGRES_USER: qala
+      POSTGRES_PASSWORD: guide123
+      POSTGRES_DB: qalaguide
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: qalaguide-backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_USER=qala
+      - POSTGRES_PASSWORD=guide123
+      - POSTGRES_DB=qalaguide
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+
+  ml:
+    build:
+      context: ./ml/poi_detector
+    container_name: qalaguide-ml
+    command: python detect.py
+    volumes:
+      - ./ml:/ml
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+    
