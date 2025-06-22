@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { View, TextInput, Button, Text } from "react-native";
-import { supabase } from "../services/supabase";
+import { supabase } from "../supabaseClient";
 
-export default function Register() {
+export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
