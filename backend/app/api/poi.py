@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Query
 from typing import List
-from app.schemas.poi import POISchema
-from app.models.poi import POI
-from app.database import AsyncSessionLocal
+from ..schemas.poi import POISchema
+from ..models.poi import POI
+from ..database import AsyncSessionLocal
 from sqlalchemy.future import select
 from math import radians, cos, sin, asin, sqrt
 

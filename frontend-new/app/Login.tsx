@@ -1,16 +1,21 @@
 import React, { useState } from 'react'
 import { View, TextInput, Button, Text, StyleSheet } from 'react-native'
 import { supabase } from '../supabaseClient'
+import { useRouter } from 'expo-router'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
+  const router = useRouter()
 
   const handleLogin = async () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) setMessage(error.message)
-    else setMessage('Успешный вход!')
+    else {
+      setMessage('Успешный вход!')
+      router.replace('/Profile')
+    }
   }
 
   return (
