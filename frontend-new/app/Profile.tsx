@@ -5,11 +5,17 @@ import { useRouter } from 'expo-router'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-const POPULAR_ROUTES = [
-  { id: 1, title: 'Золотое кольцо Москвы' },
-  { id: 2, title: 'Исторический центр' },
-  { id: 3, title: 'Музейный маршрут' }
-]
+type Route = {
+  id: number;
+  title: string;
+  coords: [number, number];
+};
+
+const POPULAR_ROUTES: Route[] = [
+  { id: 1, title: 'Байтерек', coords: [51.1281, 71.4304] },
+  { id: 2, title: 'Дворец Мира и Согласия', coords: [51.1205, 71.4450] },
+  { id: 3, title: 'Астана Опера', coords: [51.1292, 71.4165] },
+];
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null)
@@ -40,9 +46,9 @@ export default function Profile() {
   }
 
   const handleTtsLang = async (lang: string) => {
-    setTtsLang(lang)
-    await AsyncStorage.setItem('ttsLang', lang)
-  }
+    setTtsLang(lang);
+    await AsyncStorage.setItem('ttsLang', lang);
+  };
 
   if (!user) {
     return (

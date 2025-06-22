@@ -6,17 +6,16 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
 import { Camera } from "expo-camera";
 import * as Speech from "expo-speech";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { GEMINI_API_KEY } from "@env";
 import Constants from "expo-constants";
-
-const GEMINI_API_KEY = Constants?.expoConfig?.extra?.GEMINI_API_KEY;
 import * as Sharing from "expo-sharing";
 import * as MediaLibrary from "expo-media-library";
 
+const GEMINI_API_KEY = Constants?.expoConfig?.extra?.GEMINI_API_KEY;
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_API_KEY}`;
 
 export default function ARView() {
@@ -29,13 +28,33 @@ export default function ARView() {
 
   useEffect(() => {
     (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === "granted");
+      // Запрос разрешения на камеру
+      const { status: cameraStatus } = await Camera.requestCameraPermissionsAsync();
+      if (cameraStatus !== "granted") {
+        Alert.alert(
+          "Нет доступа к камере",
+          "Пожалуйста, разрешите доступ к камере в настройках устройства."
+        );
+        setHasPermission(false);
+        return;
+      }
+      setHasPermission(true);
+
+      // Запрос разрешения на медиа-библиотеку
+      const { status: mediaStatus } = await MediaLibrary.requestPermissionsAsync();
+      if (mediaStatus !== "granted") {
+        Alert.alert(
+          "Нет доступа к галерее",
+          "Пожалуйста, разрешите доступ к фото и видео в настройках устройства."
+        );
+        setMediaPermission(false);
+      } else {
+        setMediaPermission(true);
+      }
+
+      // Загрузка языка озвучки
       const lang = await AsyncStorage.getItem("ttsLang");
       if (lang) setTtsLang(lang);
-
-      const { status: mediaStatus } = await MediaLibrary.requestPermissionsAsync();
-      setMediaPermission(mediaStatus === "granted");
     })();
   }, []);
 

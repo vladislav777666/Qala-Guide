@@ -24,6 +24,11 @@ export default function EditProfile() {
   const handleSave = async () => {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setLoading(false)
+      Alert.alert('Ошибка', 'Пользователь не найден')
+      return
+    }
     const { error } = await supabase
       .from('profiles')
       .upsert({ id: user.id, full_name: fullName })

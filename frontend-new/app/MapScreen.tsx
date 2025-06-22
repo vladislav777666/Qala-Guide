@@ -1,35 +1,58 @@
 // frontend/screens/MapScreen.tsx
 
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Text, TouchableOpacity, Alert, Platform } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, Alert, Platform, ActivityIndicator } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import * as Location from "expo-location";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { Camera } from 'expo-camera';
+import { supabase } from '../supabaseClient'; // убедитесь, что путь корректный
 
-const POIS = [
-  { id: 1, title: "Музей", description: "Интересный музей", lat: 55.751244, lng: 37.618423, category: "museum" },
-  { id: 2, title: "Кафе", description: "Лучшее кафе", lat: 55.752244, lng: 37.619423, category: "cafe" }
+const ASTANA_POI = [
+  { id: 1, title: 'Байтерек', coords: [51.1281, 71.4304] },
+  { id: 2, title: 'Дворец Мира и Согласия', coords: [51.1205, 71.4450] },
+  { id: 3, title: 'Астана Опера', coords: [51.1292, 71.4165] },
 ];
 
 const MapScreen = () => {
-  const [location, setLocation] = useState<any>(null);
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [cameraGranted, setCameraGranted] = useState(false);
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const selectedRouteId = params.routeId;
+  const { routeId } = useLocalSearchParams();
+  const selectedRouteId = routeId;
+
+  // routeId может быть string | string[] | undefined
+  const routeIdNum = Array.isArray(selectedRouteId) ? Number(selectedRouteId[0]) : Number(selectedRouteId);
+
+  const route = ASTANA_POI.find(r => r.id === routeIdNum);
 
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setErrorMsg("Нет доступа к геопозиции");
+      if (status !== 'granted') {
+        Alert.alert('Нет доступа к геолокации');
         return;
       }
       let loc = await Location.getCurrentPositionAsync({});
-      setLocation(loc.coords);
+      setLocation({
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+      });
+
+      // Сохраняем в БД (например, в таблицу 'locations')
+      const { data: userData } = await supabase.auth.getUser();
+      await supabase
+        .from('locations')
+        .insert([
+          {
+            user_id: userData?.user?.id,
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude,
+            timestamp: new Date().toISOString(),
+          },
+        ]);
     })();
   }, []);
 
@@ -50,6 +73,9 @@ const MapScreen = () => {
     router.push({ pathname: "/POIDetails", params: { id: poi.id } });
   };
 
+  if (!route) return <View><ActivityIndicator /></View>;
+  if (!location) return <View><ActivityIndicator /></View>;
+
   if (errorMsg) {
     return (
       <View style={styles.container}>
@@ -63,25 +89,27 @@ const MapScreen = () => {
       <MapView
         style={styles.map}
         initialRegion={{
-          latitude: location?.latitude || 55.751244,
-          longitude: location?.longitude || 37.618423,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01
+          latitude: route.coords[0],
+          longitude: route.coords[1],
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
         }}
         showsUserLocation
       >
-        {POIS.map(poi => (
-          <Marker
-            key={poi.id}
-            coordinate={{ latitude: poi.lat, longitude: poi.lng }}
-            title={poi.title}
-            description={poi.description}
-            onPress={() => handlePOI(poi)}
-            pinColor={poi.category === "museum" ? "#1976D2" : "#64B5F6"}
-          />
-        ))}
+        <Marker
+          coordinate={{ latitude: route.coords[0], longitude: route.coords[1] }}
+          title={route.title}
+        />
+        <Marker
+          coordinate={location}
+          title="Вы"
+          pinColor="blue"
+        />
         <Polyline
-          coordinates={POIS.map(poi => ({ latitude: poi.lat, longitude: poi.lng }))}
+          coordinates={[
+            location,
+            { latitude: route.coords[0], longitude: route.coords[1] }
+          ]}
           strokeColor="#1976D2"
           strokeWidth={4}
         />
